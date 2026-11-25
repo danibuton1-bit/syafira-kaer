@@ -8,7 +8,13 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { siteQuery } from "../lib/site-query";
+import { Marquee } from "../components/site/Marquee";
+import { MusicPlayer } from "../components/site/MusicPlayer";
+import { Intro } from "../components/site/Intro";
+import { Toaster } from "../components/ui/sonner";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -81,23 +87,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Syafira Kaer" },
+      { name: "description", content: "Dunia kecil penuh cinta untuk Syafira Kaer." },
+      { property: "og:title", content: "Syafira Kaer" },
+      { property: "og:description", content: "Dunia kecil penuh cinta untuk Syafira Kaer." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@600&family=Quicksand:wght@400;500;600;700&display=swap",
+      },
     ],
   }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(siteQuery),
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
@@ -123,8 +134,23 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <SiteShell />
     </QueryClientProvider>
+  );
+}
+
+function SiteShell() {
+  const { data } = useSuspenseQuery(siteQuery);
+  const [start, setStart] = useState(0);
+  const s = data.settings;
+  return (
+    <div data-theme={s.theme} className="min-h-screen bg-background text-foreground">
+      <Marquee text={s.marquee_text} speed={s.marquee_speed} rainbow={s.marquee_rainbow} />
+      <Intro onEnter={() => setStart((n) => n + 1)} />
+      {/* Required: nested routes render here. */}
+      <Outlet />
+      <MusicPlayer src={s.music_src} title={s.music_title} startSignal={start} />
+      <Toaster />
+    </div>
   );
 }
