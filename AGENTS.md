@@ -28,3 +28,7 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+- Admin access is a shared-password gate (ADMIN_PASSWORD + SESSION_SECRET, encrypted session); all writes go through gated server functions using the admin client, because there are no user accounts.
+- Media lives in a private storage bucket and is shown via signed URLs from getSiteData, because public buckets are blocked in this workspace.
